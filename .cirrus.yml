@@ -79,7 +79,7 @@ zkg_macos_task:
     - brew install spicy --HEAD
 
   prepare_script:
-    - pip3 install zkg btest
+    - pip3 install 'zkg>=2.12.0' btest
     - zkg autoconfig && echo "@load packages" >>"$(zeek-config --site_dir)"/local.zeek
     - git clone --branch=$ZEEK_SPICY_BRANCH --recurse-submodules https://github.com/zeek/spicy-plugin
     - zkg install --skiptests --force spicy-plugin
@@ -87,16 +87,16 @@ zkg_macos_task:
     - zeek -N _Zeek::Spicy
 
   test_script:
-    - zkg test .
+    - eval $(zkg env) && export PATH=$(zkg config bin_dir):$PATH && zkg test .
 
   install_script:
     # --force avoids prompts, --skiptests because tests ran already
-    - zkg install --force --skiptests .
+    - eval $(zkg env) && export PATH=$(zkg config bin_dir):$PATH && zkg install --force --skiptests .
 
   check_script:
-    - zeek -NN _Zeek::Spicy | grep -q ANALYZER_SPICY_TFTP
-    - zeek -NN _Zeek::Spicy | grep Analyzer
-    - (cd /tmp && zeek -r ${CIRRUS_WORKING_DIR}/tests/Traces/tftp_rrq.pcap local && test -e tftp.log && grep rfc1350.txt tftp.log)
+    - eval $(zkg env) && export PATH=$(zkg config bin_dir):$PATH && zeek -NN _Zeek::Spicy | grep -q ANALYZER_SPICY_TFTP
+    - eval $(zkg env) && export PATH=$(zkg config bin_dir):$PATH && zeek -NN _Zeek::Spicy | grep Analyzer
+    - eval $(zkg env) && export PATH=$(zkg config bin_dir):$PATH && cd /tmp && zeek -r ${CIRRUS_WORKING_DIR}/tests/Traces/tftp_rrq.pcap local && test -e tftp.log && grep rfc1350.txt tftp.log
 
   always:
       stderr_script: ./ci/show-zkg-stderr
